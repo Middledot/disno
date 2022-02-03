@@ -34,7 +34,7 @@ class OAuth2Endpoints:
         return self.request(r)
 
     def get_token(self, token, redirect_uri, scopes):
-        r = Route('GET', '/oauth2/@me')
+        r = Route('POST', '/oauth2/token')
         payload = {
             "client_id": self.client_id,
             "client_secret": self.client_secret,

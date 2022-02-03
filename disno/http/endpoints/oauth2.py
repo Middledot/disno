@@ -30,7 +30,7 @@ class OAuth2Endpoints:
         r = Route('GET', '/oauth2/applications/@me')
         return self.request(r)
 
-    def get_current_authorization_info(self):
+    def get_current_auth_info(self):
         r = Route('GET', '/oauth2/@me')
         return self.request(r)
 

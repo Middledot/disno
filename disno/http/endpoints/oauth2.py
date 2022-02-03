@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from ..route import Route
+from ..enums import AuthType
 
 class OAuth2Endpoints:
     def get_application_info(self):
@@ -45,3 +46,8 @@ class OAuth2Endpoints:
         }
 
         return self.request(r, payload=payload, auth=None)
+
+    def login(self, token: str = None):
+        r = Route('GET', '/users/@me')
+        return self.request(r, auth=AuthType.bot, token=token or self.bot_token)
+

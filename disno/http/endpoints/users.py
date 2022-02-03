@@ -37,10 +37,6 @@ class UserEndpoints:
         r = Route('GET', '/users/@me')
         return self.request(r, auth=AuthType.bearer, token=token)
 
-    def login(self, token: str = None):
-        r = Route('GET', '/users/@me')
-        return self.request(r, auth=AuthType.bot, token=token or self.bot_token)
-
     def edit_current_user(self, token: str, *, username: str = None, avatar: bytes = None):
         r = Route('PATCH', '/users/@me')
         params = {}

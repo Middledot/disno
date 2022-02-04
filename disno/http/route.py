@@ -1,5 +1,4 @@
 from urllib.parse import quote as _quote
-from .utils import to_json
 
 class Route:
     base = "https://discord.com/api/v9"
@@ -25,6 +24,3 @@ class Route:
             other.method == self.method and
             other.major_params == self.major_params
         )
-
-    def __hash__(self):
-        return hash(self.url+to_json(self.major_params))

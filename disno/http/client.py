@@ -149,7 +149,6 @@ class Requester:
                         if is_global:
                             self.global_lock.clear()
 
-                        print("RESET AFTER RATELIMIT: ", reset_after)
                         await asyncio.sleep(float(reset_after))
 
                         if is_global:

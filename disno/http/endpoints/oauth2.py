@@ -50,4 +50,3 @@ class OAuth2Endpoints:
     def login(self, token: str = None):
         r = Route('GET', '/users/@me')
         return self.request(r, auth=AuthType.bot, token=token or self.bot_token)
-

@@ -25,9 +25,11 @@ SOFTWARE.
 import asyncio
 import aiohttp
 import sys
+from typing import Dict
 
 from . import utils
 from .enums import AuthType
+from .route import Route
 from .endpoints import *
 
 endpoints = (
@@ -56,18 +58,19 @@ class AutoUnlocker:
             self.lock.release()
 
 class Requester:
-    def __init__(self, session, client_id = None, client_secret = None, bot_token = None):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.bot_token = bot_token
-        self.ratelimits = {}
-        self.global_lock = asyncio.Event()
+    def __init__(self, session: aiohttp.ClientSession, client_id: str = None, client_secret: str = None, bot_token: str = None):
+        self.client_id: int = client_id
+        self.client_secret: str = client_secret
+        self.bot_token: str = bot_token
+        self.ratelimit_locks: Dict[str, asyncio.Lock] = {}
+        self.buckets: Dict[str, Route] = {}
+        self.global_lock: asyncio.Event = asyncio.Event()
         self.global_lock.set()
 
         user_agent = 'DiscordBot (https://github.com/QwireDev/disno {0}) Python/{1[0]}.{1[1]} aiohttp/{2}'
-        self.user_agent = user_agent.format("1.0.0a1", sys.version_info, aiohttp.__version__)
+        self.user_agent: str = user_agent.format("1.0.0a1", sys.version_info, aiohttp.__version__)
 
-        self.session = session
+        self.session: aiohttp.ClientSession = session
 
     async def request(
         self,
@@ -82,12 +85,12 @@ class Requester:
         to_pass = {}
         method = route.method
         url = route.url
-        bucket = route.bucket
+        bucket = self.buckets.get(route.bucket) or route.bucket
 
-        lock = self.ratelimits.get(bucket, None)
+        lock = self.ratelimit_locks.get(bucket, None)
         if lock is None:
             lock = asyncio.Lock()
-            self.ratelimits[bucket] = lock
+            self.ratelimit_locks[bucket] = lock
 
         headers = {
             "User-Agent": self.user_agent
@@ -116,32 +119,37 @@ class Requester:
             await self.global_lock.wait()
 
         await lock.acquire()
-        with AutoUnlocker(lock) as unlocker:
+        with AutoUnlocker(lock):
             for tries in range(5):
                 async with self.session.request(method, url, **to_pass) as res:
                     data = await res.json()
+
+                    new_bucket = res.headers.get('x-ratelimit-bucket', None)
+                    if new_bucket and new_bucket != bucket:
+                        route._bucket = new_bucket
+                        self.buckets[bucket] = new_bucket
+                        if self.ratelimit_locks.get(bucket, None) is not None:
+                            self.ratelimit_locks.pop(bucket)
+                            self.ratelimit_locks[new_bucket] = lock
 
                     remaining = res.headers.get("x-ratelimit-limit", None)
                     if remaining == '0' and res.status != 429:
                         delay = res.headers.get("x-ratelimit-reset-after")
                         self.loop.call_later(delay, lock.release)
 
-                    print("received")
-
-                    print({k:v for k,v in dict(res.headers).items() if "ratelimit" in k.lower()})
-                    print(res.status)
-                    print(res.headers.get('Via'))
-
                     if 300 > res.status >= 200:
                         return data
 
                     if res.status == 429:
+                        if "via" not in res.headers:
+                            raise
                         reset_after = res.headers.get("x-ratelimit-reset-after")
                         is_global = data.get("global", False)
 
                         if is_global:
                             self.global_lock.clear()
 
+                        print("RESET AFTER RATELIMIT: ", reset_after)
                         await asyncio.sleep(float(reset_after))
 
                         if is_global:

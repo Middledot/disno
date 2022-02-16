@@ -35,7 +35,10 @@ class UserEndpoints:
 
     def get_current_user(self, token: str):
         r = Route('GET', '/users/@me')
-        return self.request(r, auth=AuthType.bearer, token=token)
+        if "." in token:  # little hackity hack TODO: replace with regex one day
+            return self.request(r, auth=AuthType.bot, token=token)
+        else:
+            return self.request(r, auth=AuthType.bearer, token=token)
 
     def edit_current_user(self, token: str, *, username: str = None, avatar: bytes = None):
         r = Route('PATCH', '/users/@me')

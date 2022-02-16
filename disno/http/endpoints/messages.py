@@ -60,38 +60,6 @@ class MessageEndpoints:
         r = Route('GET', '/channels/{channel_id}/messages/{message_id}', channel_id=channel_id, message_id=message_id)
         return self.request(r)
 
-    def _prepare_form(self, payload, files):
-        form = []
-        attachments = []
-
-        for index, file in enumerate(files):
-            attachments.append(
-                {
-                    'id': index,
-                    'filename': file['filename'],
-                    'description': "a meme"
-                }
-            )
-            form.append(
-                {
-                    'name': 'files[%s]' % index,
-                    'value': file['fp'],
-                    'filename': file['filename'],
-                    'content_type': 'application/octet-stream'
-                }
-            )
-        payload['attachments'] = attachments
-        form_data = aiohttp.FormData(quote_fields=False)
-        form_data.add_field('payload_json', utils.to_json(payload))
-        for f in form:
-            form_data.add_field(
-                f['name'],
-                f['value'],
-                filename=f['filename'],
-                content_type=f['content_type']
-            )
-        return form_data
-
     def send_message(
         self,
         channel_id: int,

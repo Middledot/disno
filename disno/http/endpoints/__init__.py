@@ -29,6 +29,7 @@ from .messages import MessageEndpoints
 from .channels import ChannelEndpoints
 from .messages import MessageEndpoints
 from .reactions import ReactionEndpoints
+from .commands import ApplicationCommandEndpoints
 
 __all__ = (
     'GuildEndpoints',
@@ -37,4 +38,5 @@ __all__ = (
     'ReactionEndpoints',
     'UserEndpoints',
     'OAuth2Endpoints',
+    'ApplicationCommandEndpoints',
 )

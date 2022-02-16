@@ -23,26 +23,28 @@ SOFTWARE.
 """
 
 from ..route import Route
-from ..enums import AuthType
 
-class OAuth2Endpoints:
-    def get_application_info(self):
-        r = Route('GET', '/oauth2/applications/@me')
-        return self.request(r)
 
-    def get_current_auth_info(self):
-        r = Route('GET', '/oauth2/@me')
-        return self.request(r)
-
-    def get_token(self, token, redirect_uri, scopes):
-        r = Route('POST', '/oauth2/token')
+class InteractionEndpoints:
+    def create_interaction_response(
+        self,
+        interaction_id: int,
+        interaction_token: str,
+        *,
+        type: int,
+        data
+    ):
+        r = Route("POST", "/interactions/{interaction_id}/{interaction_token}/callback", interaction_id=interaction_id, interaction_token=interaction_token)
         payload = {
-            "client_id": self.client_id,
-            "client_secret": self.client_secret,
-            "grant_type": "authorization_code",
-            "code": token,
-            "redirect_uri": redirect_uri,
-            "scope": scopes
+            "type": type,
+            "data": data
         }
+        return self.request(r, payload=payload)
 
-        return self.request(r, payload=payload, auth=None)
+    def get_original_interaction_response(
+        self,
+        application_id: int,
+        interaction_token: str,
+    ):
+        r = Route("GET", "/webhooks/{application_id}/{interaction_token}/messages/@original", application_id=application_id, interaction_token=interaction_token)
+        return self.request(r)

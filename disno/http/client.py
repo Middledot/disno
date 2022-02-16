@@ -39,6 +39,7 @@ endpoints = (
     ChannelEndpoints,
     MessageEndpoints,
     ReactionEndpoints,
+    ApplicationCommandEndpoints,
 )
 
 class AutoUnlocker:
@@ -106,9 +107,11 @@ class Requester:
 
         if data:
             to_pass["data"] = data
-        elif payload:
+        elif payload is not None:
             headers["Content-Type"] = "application/json"
             to_pass["data"] = utils.to_json(payload)
+        else:
+            headers["Content-Type"] = "application/json"
 
         if params:
             to_pass["params"] = params
@@ -159,13 +162,6 @@ class Requester:
 
 class HTTPClient(Requester, *endpoints):
     def __init__(self,  bot_token = None, client_id = None, client_secret = None, *, loop=None, session=None):
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.bot_token = bot_token
-
-        user_agent = 'DiscordBot (https://github.com/QwireDev/disno {0}) Python/{1[0]}.{1[1]} aiohttp/{2}'
-        self.user_agent = user_agent.format("1.0.0a.1", sys.version_info, aiohttp.__version__)
-
         if loop is None:
             try:
                 loop = asyncio.get_running_loop()
@@ -179,6 +175,38 @@ class HTTPClient(Requester, *endpoints):
             session = aiohttp.ClientSession(loop=self.loop)
 
         super().__init__(session, client_id=client_id, client_secret=client_secret, bot_token=bot_token)
+
+    def _prepare_form(self, payload, files):
+        form = []
+        attachments = []
+
+        for index, file in enumerate(files):
+            attachments.append(
+                {
+                    'id': index,
+                    'filename': file['filename'],
+                    'description': "a meme"
+                }
+            )
+            form.append(
+                {
+                    'name': 'files[%s]' % index,
+                    'value': file['fp'],
+                    'filename': file['filename'],
+                    'content_type': 'application/octet-stream'
+                }
+            )
+        payload['attachments'] = attachments
+        form_data = aiohttp.FormData(quote_fields=False)
+        form_data.add_field('payload_json', utils.to_json(payload))
+        for f in form:
+            form_data.add_field(
+                f['name'],
+                f['value'],
+                filename=f['filename'],
+                content_type=f['content_type']
+            )
+        return form_data
 
     async def get_gateway(self, *, encoding: str = 'json', zlib: bool = True) -> str:
         data = await self.client.session.request("GET", "https://discord.com/api/v9/gateway")

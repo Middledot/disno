@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from ..route import Route
+from ..utils import MISSING
 
 
 class InteractionEndpoints:
@@ -41,10 +42,133 @@ class InteractionEndpoints:
         }
         return self.request(r, payload=payload)
 
-    def get_original_interaction_response(
+    def get_original_interaction_response(self, application_id: int, interaction_token: str):
+        return self.get_webhook_message(webhook_id=application_id, webhook_token=interaction_token, message_id="@original")
+
+    def edit_original_interaction_response(
         self,
         application_id: int,
         interaction_token: str,
+        *,
+        content: str = MISSING,
+        embeds = MISSING,
+        allowed_mentions = MISSING,
+        components = MISSING,
+        files = None,
+        thread_id: int = MISSING,
     ):
-        r = Route("GET", "/webhooks/{application_id}/{interaction_token}/messages/@original", application_id=application_id, interaction_token=interaction_token)
-        return self.request(r)
+        payload = {}
+
+        if content is not MISSING:
+            payload["content"] = content
+
+        if embeds is not MISSING:
+            payload["embeds"] = embeds
+
+        if allowed_mentions is not MISSING:
+            payload["allowed_mentions"] = allowed_mentions
+
+        if components is not MISSING:
+            payload["components"] = components
+
+        if files is not MISSING:
+            payload["files"] = files
+
+        if thread_id is not MISSING:
+            payload["thread_id"] = thread_id
+
+        return self.edit_webhook_message(
+            webhook_id=application_id,
+            webhook_token=interaction_token,
+            message_id="@original",
+            **payload
+        )
+
+    def delete_original_interaction_response(self, application_id: int, interaction_token: str):
+        return self.delete_webhook_message(webhook_id=application_id, webhook_token=interaction_token, message_id="@original")
+
+    def send_followup_message(
+        self,
+        application_id: int,
+        interaction_token: str,
+        *,
+        content: str = MISSING,
+        tts: bool = MISSING,
+        embeds = MISSING,
+        allowed_mentions = MISSING,
+        components = MISSING,
+        files = None,
+        ephemeral: bool = False
+    ):
+        payload = {"tts": int(tts)}
+
+        if content is not MISSING:
+            payload["content"] = content
+
+        if embeds is not MISSING:
+            payload["embeds"] = embeds
+
+        if allowed_mentions is not MISSING:
+            payload["allowed_mentions"] = allowed_mentions
+
+        if components is not MISSING:
+            payload["components"] = components
+
+        if ephemeral is not False:
+            payload["flags"] = 64
+
+        if files is not None:
+            payload["files"] = files
+
+        return self.send_webhook_message(
+            webhook_id=application_id,
+            webhook_token=interaction_token,
+            message_id="@original",
+            **payload
+        )
+
+    def get_followup_message(self, application_id: int, interaction_token: str, message_id: int):
+        return self.send_webhook_message(webhook_id=application_id, webhook_token=interaction_token, message_id=message_id)
+
+    def edit_followup_message(
+        self,
+        application_id: int,
+        interaction_token: str,
+        message_id: int,
+        *,
+        content: str = MISSING,
+        embeds = MISSING,
+        allowed_mentions = MISSING,
+        components = MISSING,
+        files = None,
+        thread_id: int = MISSING,
+    ):
+        payload = {}
+
+        if content is not MISSING:
+            payload["content"] = content
+
+        if embeds is not MISSING:
+            payload["embeds"] = embeds
+
+        if allowed_mentions is not MISSING:
+            payload["allowed_mentions"] = allowed_mentions
+
+        if components is not MISSING:
+            payload["components"] = components
+
+        if files is not MISSING:
+            payload["files"] = files
+
+        if thread_id is not MISSING:
+            payload["thread_id"] = thread_id
+
+        return self.edit_webhook_message(
+            webhook_id=application_id,
+            webhook_token=interaction_token,
+            message_id=message_id,
+            **payload
+        )
+
+    def delete_followup_message(self, application_id: int, interaction_token: str, message_id: int):
+        return self.delete_webhook_message(webhook_id=application_id, webhook_token=interaction_token, message_id=message_id)

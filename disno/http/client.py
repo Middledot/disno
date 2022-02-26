@@ -40,6 +40,9 @@ endpoints = (
     MessageEndpoints,
     ReactionEndpoints,
     ApplicationCommandEndpoints,
+    InteractionEndpoints,
+    AuthenticationlessWebhookEndpoints,
+    WebhookEndpoints,
 )
 
 class AutoUnlocker:
@@ -72,6 +75,38 @@ class Requester:
         self.user_agent: str = user_agent.format("1.0.0a1", sys.version_info, aiohttp.__version__)
 
         self.session: aiohttp.ClientSession = session
+
+    def _prepare_form(self, payload, files):
+        form = []
+        attachments = []
+
+        for index, file in enumerate(files):
+            attachments.append(
+                {
+                    'id': index,
+                    'filename': file['filename'],
+                    'description': "a meme"
+                }
+            )
+            form.append(
+                {
+                    'name': 'files[%s]' % index,
+                    'value': file['fp'],
+                    'filename': file['filename'],
+                    'content_type': 'application/octet-stream'
+                }
+            )
+        payload['attachments'] = attachments
+        form_data = aiohttp.FormData(quote_fields=False)
+        form_data.add_field('payload_json', utils.to_json(payload))
+        for f in form:
+            form_data.add_field(
+                f['name'],
+                f['value'],
+                filename=f['filename'],
+                content_type=f['content_type']
+            )
+        return form_data
 
     async def request(
         self,
@@ -160,8 +195,54 @@ class Requester:
                     return data
 
 
+class WebhookClient(Requester, AuthenticationlessWebhookEndpoints):
+    def __init__(self, *, loop=None, session=None):
+        if loop is None:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+        self.loop = loop
+
+        if session is None:
+            session = aiohttp.ClientSession(loop=self.loop)
+
+        super().__init__(session, client_id=None, client_secret=None, bot_token=None)
+
+    async def request(
+        self,
+        route,
+        payload = None,
+        params = None,
+        data = None,
+        reason = None,
+        auth = AuthType.none,
+        token = None,
+    ):
+        return await super().request(route, payload, params, data, reason, auth, token)
+
+
+class InteractionsClient(Requester, WebhookEndpoints, InteractionEndpoints):
+    def __init__(self, bot_token, *, loop=None, session=None):
+        if loop is None:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+        self.loop = loop
+
+        if session is None:
+            session = aiohttp.ClientSession(loop=self.loop)
+
+        super().__init__(session, client_id=None, client_secret=None, bot_token=bot_token)
+
+
 class HTTPClient(Requester, *endpoints):
-    def __init__(self,  bot_token = None, client_id = None, client_secret = None, *, loop=None, session=None):
+    def __init__(self, bot_token = None, client_id = None, client_secret = None, *, loop=None, session=None):
         if loop is None:
             try:
                 loop = asyncio.get_running_loop()
@@ -175,38 +256,6 @@ class HTTPClient(Requester, *endpoints):
             session = aiohttp.ClientSession(loop=self.loop)
 
         super().__init__(session, client_id=client_id, client_secret=client_secret, bot_token=bot_token)
-
-    def _prepare_form(self, payload, files):
-        form = []
-        attachments = []
-
-        for index, file in enumerate(files):
-            attachments.append(
-                {
-                    'id': index,
-                    'filename': file['filename'],
-                    'description': "a meme"
-                }
-            )
-            form.append(
-                {
-                    'name': 'files[%s]' % index,
-                    'value': file['fp'],
-                    'filename': file['filename'],
-                    'content_type': 'application/octet-stream'
-                }
-            )
-        payload['attachments'] = attachments
-        form_data = aiohttp.FormData(quote_fields=False)
-        form_data.add_field('payload_json', utils.to_json(payload))
-        for f in form:
-            form_data.add_field(
-                f['name'],
-                f['value'],
-                filename=f['filename'],
-                content_type=f['content_type']
-            )
-        return form_data
 
     async def get_gateway(self, *, encoding: str = 'json', zlib: bool = True) -> str:
         data = await self.client.session.request("GET", "https://discord.com/api/v9/gateway")

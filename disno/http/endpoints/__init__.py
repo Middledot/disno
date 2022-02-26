@@ -30,6 +30,8 @@ from .channels import ChannelEndpoints
 from .messages import MessageEndpoints
 from .reactions import ReactionEndpoints
 from .commands import ApplicationCommandEndpoints
+from .interactions import InteractionEndpoints
+from .webhooks import WebhookEndpoints, AuthenticationlessWebhookEndpoints
 
 __all__ = (
     'GuildEndpoints',
@@ -39,4 +41,7 @@ __all__ = (
     'UserEndpoints',
     'OAuth2Endpoints',
     'ApplicationCommandEndpoints',
+    'InteractionEndpoints',
+    'WebhookEndpoints',
+    'AuthenticationlessWebhookEndpoints',
 )

@@ -23,7 +23,7 @@ SOFTWARE.
 """
 
 from ..route import Route
-from ..utils import MISSING
+from ..utils import bytes_to_base64_data, MISSING
 
 from typing import Union, Literal
 
@@ -48,7 +48,7 @@ class AuthenticationlessWebhookEndpoints:  # TODO: naming?
             payload["name"] = name
 
         if avatar is not MISSING:
-            payload["avatar"] = avatar
+            payload["avatar"] = bytes_to_base64_data(avatar)
 
         return self.request(r, payload=payload)
 
@@ -174,7 +174,7 @@ class WebhookEndpoints(AuthenticationlessWebhookEndpoints):
         payload = {"name": name}
 
         if avatar is not MISSING:
-            payload["avatar"] = avatar
+            payload["avatar"] = bytes_to_base64_data(avatar)
 
         return self.request(r, payload=payload)
 
@@ -205,7 +205,7 @@ class WebhookEndpoints(AuthenticationlessWebhookEndpoints):
             payload["name"] = name
 
         if avatar is not MISSING:
-            payload["avatar"] = avatar
+            payload["avatar"] = bytes_to_base64_data(avatar)
 
         if channel_id is not MISSING:
             payload["channel_id"] = channel_id

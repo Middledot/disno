@@ -36,6 +36,7 @@ except ModuleNotFoundError:
     to_json = lambda o: json.dumps(o, separators=(',', ':'), ensure_ascii=True)
     from_json = json.loads
 
+
 class _MissingSentinel:
     def __eq__(self, other):
         return False
@@ -48,6 +49,7 @@ class _MissingSentinel:
 
 MISSING = _MissingSentinel()
 
+
 def get_mime_type_for_image(data: bytes):
     if data.startswith(b'\x89\x50\x4E\x47\x0D\x0A\x1A\x0A'):
         return 'image/png'
@@ -59,6 +61,7 @@ def get_mime_type_for_image(data: bytes):
         return 'image/webp'
     else:
         raise TypeError('Unsupported image type given')
+
 
 def bytes_to_base64_data(data: bytes):
     mime = get_mime_type_for_image(data)

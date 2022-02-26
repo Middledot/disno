@@ -23,7 +23,7 @@ SOFTWARE.
 """
 
 import aiohttp
-from typing import List
+from typing import List, Optional
 
 from ..route import Route
 from ..enums import AuthType
@@ -41,6 +41,59 @@ class ChannelEndpoints:
     ):
         r = Route('GET', '/channels/{channel_id}', channel_id=channel_id)
         return self.request(r)
+
+    def get_guild_channels(self, guild_id: int):
+        r = Route("GET", "/guilds/{guild_id}/channels", guild_id=guild_id)
+        return self.request(r)
+
+    def create_channel(
+        self,
+        guild_id: int,
+        *,
+        name: str,
+        type: Optional[int] = None,
+        topic: Optional[str] = None,
+        bitrate: Optional[int] = None,
+        user_limit: Optional[int] = None,
+        rate_limit_per_user: Optional[int] = None,
+        position: Optional[int] = None,
+        permission_overwrites = None,
+        parent_id: Optional[int] = None,
+        nsfw: Optional[bool] = None,
+        reason: str = None
+    ):
+        r = Route("POST", "/guilds/{guild_id}/channels", guild_id=guild_id)
+        payload = {
+            "name": name,
+            "type": type,
+            "topic": topic,
+            "bitrate": bitrate,
+            "user_limit": user_limit,
+            "rate_limit_per_user": rate_limit_per_user,
+            "position": position,
+            "permission_overwrites": permission_overwrites,
+            "parent_id": parent_id,
+            "nsfw": int(nsfw)
+        }
+
+        return self.request(r, payload=payload, reason=reason)
+
+    def edit_channel_position(self, guild_id: int, *, channel_id: int, position: int = None, lock_permissions: bool = None, parent_id: int = None, reason: str = None):
+        r = Route("PATCH", "/guilds/{guild_id}/channels", guild_id=guild_id)
+        payload = {
+            "id": channel_id,
+        }
+
+        if position is not None:
+            payload["position"] = position
+        
+        if lock_permissions is not None:
+            payload["lock_permissions"] = lock_permissions
+        
+        if parent_id is not None:
+            payload["parent_id"] = parent_id
+
+        return self.request(r, payload=payload, reason=reason)
 
     def create_dm_from_current_user(self, token, *, recipient_id):
         r = Route('POST', '/users/@me/channels')
@@ -97,7 +150,7 @@ class ChannelEndpoints:
         position: int = MISSING,
         topic: str = MISSING,
         nsfw: bool = MISSING,
-        slowmode: int = MISSING,
+        rate_limit_per_user: int = MISSING,
         bitrate: int = MISSING,
         user_limit: int = MISSING,
         permissions_overwrites: List = MISSING,
@@ -126,8 +179,8 @@ class ChannelEndpoints:
         if nsfw is not MISSING:
             payload["nsfw"] = int(nsfw)
 
-        if slowmode is not MISSING:
-            payload["rate_limit_per_user"] = slowmode
+        if rate_limit_per_user is not MISSING:
+            payload["rate_limit_per_user"] = rate_limit_per_user
 
         if bitrate is not MISSING:
             payload["bitrate"] = bitrate
@@ -161,7 +214,7 @@ class ChannelEndpoints:
         auto_archive_duration: int = MISSING,
         locked: bool = MISSING,
         invitable: bool = MISSING,
-        slowmode: int = MISSING,
+        rate_limit_per_user: int = MISSING,
         reason: str = MISSING
     ):
         r = Route('PATCH', '/channels/{channel_id}', channel_id=channel_id)
@@ -182,8 +235,8 @@ class ChannelEndpoints:
         if invitable is not MISSING:
             payload["invitable"] = invitable
 
-        if slowmode is not MISSING:
-            payload["rate_limit_per_user"] = slowmode
+        if rate_limit_per_user is not MISSING:
+            payload["rate_limit_per_user"] = rate_limit_per_user
 
         return self.request(r, payload=payload, reason=reason)
 
@@ -205,7 +258,7 @@ class ChannelEndpoints:
         payload = {
             "allow": allow,
             "deny": deny,
-            "type": type
+            "type": type,
         }
 
         return self.request(r, payload=payload, reason=reason)
@@ -213,36 +266,6 @@ class ChannelEndpoints:
     def delete_channel_permissions(self, channel_id: int, overwrite_id: int, *, reason: str = None):
         r = Route('DELETE', '/channels/{channel_id}/permissions/{overwrite_id}', channel_id=channel_id, overwrite_id=overwrite_id)
         return self.request(r, reason=reason)
-
-    def get_channel_invites(self, channel_id: int):
-        r = Route('GET', '/channels/{channel_id}/invites', channel_id=channel_id)
-        return self.request(r)
-
-    def create_invite(
-        self,
-        channel_id: int,
-        *,
-        max_age: int,
-        max_uses: int,
-        temporary: bool,
-        unique: bool,
-        target_type: int,
-        target_user_id: int,
-        target_application_id: int,
-        reason: str = None
-    ):
-        r = Route('POST', '/channels/{channel_id}/invites', channel_id=channel_id)
-        payload = {
-            "max_age": max_age,
-            "max_uses": max_uses,
-            "temporary": int(temporary),
-            "unique": int(unique),
-            "target_type": target_type,
-            "target_user_id": target_user_id,
-            "target_application_id": target_application_id,
-        }
-
-        return self.request(r, payload=payload, reason=reason)
 
     def follow_news_channel(self, channel_id: int, *, webhook_channel_id: int = None):
         r = Route('POST', '/channels/{channel_id}/', channel_id=channel_id)
@@ -276,7 +299,7 @@ class ChannelEndpoints:
         *,
         name: str,
         auto_archive_duration: int = None,
-        slowmode: int = None,
+        rate_limit_per_user: int = None,
         reason: str = None
     ):
         r = Route('POST', '/channels/{channel_id}/messages/{message_id}/threads', channel_id=channel_id, message_id=message_id)
@@ -287,8 +310,8 @@ class ChannelEndpoints:
         if auto_archive_duration is not None:
             payload["auto_archive_duration"] = auto_archive_duration
 
-        if slowmode is not None:
-            payload["rate_limit_per_user"] = slowmode
+        if rate_limit_per_user is not None:
+            payload["rate_limit_per_user"] = rate_limit_per_user
 
         return self.request(r, payload=payload, reason=reason)
 
@@ -300,7 +323,7 @@ class ChannelEndpoints:
         auto_archive_duration: int = None,
         type: int = None,
         invitable: int = None,
-        slowmode: int = None,
+        rate_limit_per_user: int = None,
         reason: str = None
     ):
         r = Route('POST', '/channels/{channel_id}/threads', channel_id=channel_id)
@@ -317,8 +340,8 @@ class ChannelEndpoints:
         if invitable is not None:
             payload["invitable"] = invitable
 
-        if slowmode is not None:
-            payload["rate_limit_per_user"] = slowmode
+        if rate_limit_per_user is not None:
+            payload["rate_limit_per_user"] = rate_limit_per_user
 
         return self.request(r, payload=payload, reason=reason)
 
@@ -344,6 +367,10 @@ class ChannelEndpoints:
 
     def list_active_threads(self, channel_id: int):
         r = Route('GET', '/channels/{channel_id}/threads/active', channel_id=channel_id)
+        return self.request(r)
+
+    def list_active_guild_threads(self, guild_id: int):
+        r = Route("GET", "/guilds/{guild_id}/threads/active", guild_id=guild_id)
         return self.request(r)
 
     def get_public_archived_threads(self, channel_id: int, *, limit: int = None, before: int = None):

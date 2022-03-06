@@ -46,6 +46,7 @@ endpoints = (
     TemplateEndpoints,
     StageInstanceEndpoints,
     StickerEndpoints,
+    VoiceEndpoints,
 )
 
 class AutoUnlocker:

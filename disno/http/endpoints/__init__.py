@@ -36,6 +36,7 @@ from .scheduled_events import ScheduledEventEndpoints
 from .templates import TemplateEndpoints
 from .stage_instances import StageInstanceEndpoints
 from .stickers import StickerEndpoints
+from .voice import VoiceEndpoints
 
 __all__ = (
     'GuildEndpoints',
@@ -51,5 +52,6 @@ __all__ = (
     'ScheduledEventEndpoints',
     'TemplateEndpoints',
     'StageInstanceEndpoints',
-    'StickerEndpoints'
+    'StickerEndpoints',
+    'VoiceEndpoints',
 )

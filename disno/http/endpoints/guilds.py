@@ -427,10 +427,6 @@ class GuildEndpoints:
 
         return self.request(r, params=payload, reason=reason)
 
-    def get_voice_regions(self, guild_id: int):
-        r = Route("GET", "/guilds/{guild_id}/regions", guild_id=guild_id)
-        return self.request(r)
-
     def get_integrations(self, guild_id: int):
         r = Route("GET", "/guilds/{guild_id}/integrations", guild_id=guild_id)
         return self.request(r)
@@ -493,28 +489,6 @@ class GuildEndpoints:
             payload["description"] = description
 
         return self.request(r)
-
-    def edit_current_user_voice_state(self, guild_id: int, *, channel_id: int, suppress: bool = MISSING, request_to_speak_timestamp: str = MISSING):
-        # TODO: test if channel_id is actually required
-        r = Route("PATCH", "/guilds/{guild_id}/voice-states/@me", guild_id=guild_id)
-        payload = {"channel_id": channel_id}
-
-        if suppress is not MISSING:
-            payload["suppress"] = suppress
-
-        if request_to_speak_timestamp is not MISSING:
-            payload["request_to_speak_timestamp"] = request_to_speak_timestamp
-
-        return self.request(r, payload=payload)
-
-    def edit_user_voice_state(self, guild_id: int, user_id: int, *, channel_id: int, suppress: bool = MISSING):
-        r = Route("PATCH", "/guilds/{guild_id}/voice-states/{user_id}", guild_id=guild_id, user_id=user_id)
-        payload = {"channel_id": channel_id}
-
-        if suppress is not MISSING:
-            payload["suppress"] = suppress
-
-        return self.request(r, payload=payload)
 
     def get_guild_audit_logs(
         self,

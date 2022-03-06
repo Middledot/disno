@@ -45,6 +45,7 @@ endpoints = (
     ScheduledEventEndpoints,
     TemplateEndpoints,
     StageInstanceEndpoints,
+    StickerEndpoints,
 )
 
 class AutoUnlocker:

@@ -32,6 +32,8 @@ from .reactions import ReactionEndpoints
 from .commands import ApplicationCommandEndpoints
 from .interactions import InteractionEndpoints
 from .webhooks import WebhookEndpoints, AuthenticationlessWebhookEndpoints
+from .scheduled_events import ScheduledEventEndpoints
+from .templates import TemplateEndpoints
 
 __all__ = (
     'GuildEndpoints',
@@ -44,4 +46,6 @@ __all__ = (
     'InteractionEndpoints',
     'WebhookEndpoints',
     'AuthenticationlessWebhookEndpoints',
+    'ScheduledEventEndpoints',
+    'TemplateEndpoints',
 )

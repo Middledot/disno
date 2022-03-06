@@ -41,8 +41,9 @@ endpoints = (
     ReactionEndpoints,
     ApplicationCommandEndpoints,
     InteractionEndpoints,
-    AuthenticationlessWebhookEndpoints,
     WebhookEndpoints,
+    ScheduledEventEndpoints,
+    TemplateEndpoints,
 )
 
 class AutoUnlocker:

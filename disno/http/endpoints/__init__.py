@@ -34,6 +34,7 @@ from .interactions import InteractionEndpoints
 from .webhooks import WebhookEndpoints, AuthenticationlessWebhookEndpoints
 from .scheduled_events import ScheduledEventEndpoints
 from .templates import TemplateEndpoints
+from .stage_instances import StageInstanceEndpoints
 
 __all__ = (
     'GuildEndpoints',
@@ -48,4 +49,5 @@ __all__ = (
     'AuthenticationlessWebhookEndpoints',
     'ScheduledEventEndpoints',
     'TemplateEndpoints',
+    'StageInstanceEndpoints'
 )

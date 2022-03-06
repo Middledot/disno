@@ -44,6 +44,7 @@ endpoints = (
     WebhookEndpoints,
     ScheduledEventEndpoints,
     TemplateEndpoints,
+    StageInstanceEndpoints,
 )
 
 class AutoUnlocker:

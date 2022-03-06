@@ -214,18 +214,6 @@ class WebhookClient(Requester, AuthenticationlessWebhookEndpoints):
 
         super().__init__(session, client_id=None, client_secret=None, bot_token=None)
 
-    async def request(
-        self,
-        route,
-        payload = None,
-        params = None,
-        data = None,
-        reason = None,
-        auth = AuthType.none,
-        token = None,
-    ):
-        return await super().request(route, payload, params, data, reason, auth, token)
-
 
 class InteractionsClient(Requester, WebhookEndpoints, InteractionEndpoints):
     def __init__(self, bot_token, *, loop=None, session=None):

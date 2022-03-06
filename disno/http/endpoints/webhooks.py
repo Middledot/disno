@@ -23,6 +23,7 @@ SOFTWARE.
 """
 
 from ..route import Route
+from ..enums import AuthType
 from ..utils import bytes_to_base64_data, MISSING
 
 from typing import Union, Literal
@@ -31,7 +32,7 @@ from typing import Union, Literal
 class AuthenticationlessWebhookEndpoints:  # TODO: naming?
     def get_webhook_with_token(self, webhook_id: int, webhook_token: str):
         r = Route("GET", "/webhooks/{webhook_id}/{webhook_token}", webhook_id=webhook_id, webhook_token=webhook_token)
-        return self.request(r)
+        return self.request(r, auth=AuthType.none)
 
     def edit_webhook_with_token(
         self,
@@ -50,11 +51,11 @@ class AuthenticationlessWebhookEndpoints:  # TODO: naming?
         if avatar is not MISSING:
             payload["avatar"] = bytes_to_base64_data(avatar)
 
-        return self.request(r, payload=payload)
+        return self.request(r, payload=payload, auth=AuthType.none)
 
     def delete_webhook_with_token(self, webhook_id: int, webhook_token: str):
         r = Route("DELETE", "/webhooks/{webhook_id}/{webhook_token}", webhook_id=webhook_id, webhook_token=webhook_token)
-        return self.request(r)
+        return self.request(r, auth=AuthType.none)
 
     def send_webhook_message(
         self,
@@ -99,7 +100,7 @@ class AuthenticationlessWebhookEndpoints:  # TODO: naming?
             form = self._prepare_form(payload, files)
             return self.request(r, data=form)
         else:
-            return self.request(r, payload=payload)
+            return self.request(r, payload=payload, auth=AuthType.none)
 
     def get_webhook_message(
         self,
@@ -112,7 +113,7 @@ class AuthenticationlessWebhookEndpoints:  # TODO: naming?
         r = Route("GET", "/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}", webhook_id=webhook_id, webhook_token=webhook_token, message_id=message_id)
         params = {"thread_id": thread_id}
 
-        return self.request(r, params=params)
+        return self.request(r, params=params, auth=AuthType.none)
 
     def edit_webhook_message(
         self,
@@ -147,7 +148,7 @@ class AuthenticationlessWebhookEndpoints:  # TODO: naming?
             form = self._prepare_form(payload, files)
             return self.request(r, data=form, params=params)
         else:
-            return self.request(r, payload=payload, params=params)
+            return self.request(r, payload=payload, params=params, auth=AuthType.none)
 
     def delete_webhook_message(
         self,
@@ -159,7 +160,7 @@ class AuthenticationlessWebhookEndpoints:  # TODO: naming?
     ):
         r = Route("DELETE", "/webhooks/{webhook_id}/{webhook_token}/messages/{message_id}", webhook_id=webhook_id, webhook_token=webhook_token, message_id=message_id)
         params = {"thread_id": thread_id}
-        return self.request(r, params=params)
+        return self.request(r, params=params, auth=AuthType.none)
 
 
 class WebhookEndpoints(AuthenticationlessWebhookEndpoints):

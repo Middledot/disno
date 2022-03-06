@@ -160,24 +160,3 @@ class ScheduledEventEndpoints:
             params["after"] = after
 
         return self.request(r, params=params)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

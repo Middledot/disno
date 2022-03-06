@@ -59,7 +59,8 @@ class ScheduledEventEndpoints:
         description: str = None,
         entity_metadata = None,
         channel_id: str = None,
-        image: bytes = None
+        image: bytes = None,
+        reason: str = None
     ):
         r = Route("POST", "/guilds/{guild_id}/scheduled-events", guild_id=guild_id)
         payload = {
@@ -84,7 +85,7 @@ class ScheduledEventEndpoints:
         if image is not None:
             payload["image"] = bytes_to_base64_data(image)
 
-        return self.request(r, payload=payload)
+        return self.request(r, payload=payload, reason=reason)
 
     def edit_scheduled_event(
         self,
@@ -99,7 +100,8 @@ class ScheduledEventEndpoints:
         description: str = MISSING,
         entity_metadata = MISSING,
         channel_id: str = MISSING,
-        image: bytes = MISSING
+        image: bytes = MISSING,
+        reason: str = None
     ):
         r = Route("POST", "/guilds/{guild_id}/scheduled-events/{event_id}", guild_id=guild_id, event_id=event_id)
         payload = {}
@@ -131,9 +133,10 @@ class ScheduledEventEndpoints:
         if image is not MISSING:
             payload["image"] = bytes_to_base64_data(image)
 
-        return self.request(r, payload=payload)
+        return self.request(r, payload=payload, reason=reason)
 
     def delete_scheduled_event(self, guild_id: int, event_id: int):
+        # TODO: Check if this doesn't support the reason param
         r = Route("DELETE", "/guilds/{guild_id}/scherduled-events/{event_id}", guild_id=guild_id, event_id=event_id)
         return self.request(r)
 

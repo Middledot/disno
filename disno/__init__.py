@@ -23,3 +23,9 @@ SOFTWARE.
 """
 
 __version__ = "0.1"
+__author__ = "Middledot"
+__copyright__ = "Copyright (c) 2021-present, Qwire Development Team"
+__license__ = "MIT"
+
+# submodules
+from . import http

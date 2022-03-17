@@ -33,9 +33,11 @@ class UserEndpoints:
         r = Route('GET', '/users/{user_id}', user_id=user_id)
         return self.request(r)
 
-    def get_current_user(self, token: str):
+    def get_current_user(self, token: str = None):
         r = Route('GET', '/users/@me')
-        if "." in token:  # little hackity hack TODO: replace with regex one day
+        if not token:
+            return self.request(r, auth=AuthType.bot, token=self.bot_token)
+        elif "." in token:  # little hackity hack TODO: replace with regex one day
             return self.request(r, auth=AuthType.bot, token=token)
         else:
             return self.request(r, auth=AuthType.bearer, token=token)

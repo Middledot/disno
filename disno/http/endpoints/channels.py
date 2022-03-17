@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import aiohttp
 from typing import List, Optional
 
 from ..route import Route
@@ -161,14 +160,13 @@ class ChannelEndpoints:
         reason: str = None
     ):
         r = Route('PATCH', '/channels/{channel_id}', channel_id=channel_id)
-        _type = type
         payload = {}
 
         if name is not MISSING:
             payload["name"] = name
 
-        if _type is not MISSING:
-            payload["type"] = _type
+        if type is not MISSING:
+            payload["type"] = type
 
         if position is not MISSING:
             payload["position"] = position

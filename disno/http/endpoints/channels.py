@@ -242,7 +242,7 @@ class ChannelEndpoints:
         r = Route('DELETE', '/channels/{channel_id}', channel_id=channel_id)
         return self.request(r, reason=reason)
 
-    def edit_channel_permissions(
+    def edit_channel_overwrite(
         self,
         channel_id: int,
         overwrite_id: int,
@@ -261,7 +261,7 @@ class ChannelEndpoints:
 
         return self.request(r, payload=payload, reason=reason)
 
-    def delete_channel_permissions(self, channel_id: int, overwrite_id: int, *, reason: str = None):
+    def delete_channel_overwrite(self, channel_id: int, overwrite_id: int, *, reason: str = None):
         r = Route('DELETE', '/channels/{channel_id}/permissions/{overwrite_id}', channel_id=channel_id, overwrite_id=overwrite_id)
         return self.request(r, reason=reason)
 

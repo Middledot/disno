@@ -38,10 +38,12 @@ class ChannelEndpoints:
         self,
         channel_id: int
     ):
+        """Fetch a channel by ID."""
         r = Route('GET', '/channels/{channel_id}', channel_id=channel_id)
         return self.request(r)
 
     def get_guild_channels(self, guild_id: int):
+        """Fetch all of guild's channels."""
         r = Route("GET", "/guilds/{guild_id}/channels", guild_id=guild_id)
         return self.request(r)
 
@@ -61,6 +63,7 @@ class ChannelEndpoints:
         nsfw: Optional[bool] = None,
         reason: str = None
     ):
+        """Create a guild channel."""
         r = Route("POST", "/guilds/{guild_id}/channels", guild_id=guild_id)
         payload = {
             "name": name,
@@ -78,6 +81,7 @@ class ChannelEndpoints:
         return self.request(r, payload=payload, reason=reason)
 
     def edit_channel_position(self, guild_id: int, *, channel_id: int, position: int = None, lock_permissions: bool = None, parent_id: int = None, reason: str = None):
+        """Edit a guild channel's position."""
         r = Route("PATCH", "/guilds/{guild_id}/channels", guild_id=guild_id)
         payload = {
             "id": channel_id,
@@ -95,12 +99,17 @@ class ChannelEndpoints:
         return self.request(r, payload=payload, reason=reason)
 
     def create_dm_from_current_user(self, token, *, recipient_id):
+        """Create a DM from the current user to a recipient."""
         r = Route('POST', '/users/@me/channels')
         payload = {"recipient_id": recipient_id}
 
         return self.request(r, payload=payload, auth=AuthType.bearer, token=token)
 
     def create_group_from_current_user(self, token, *, access_tokens, nicks):
+        """Create group DM with access_tokens.
+
+        Note: Access tokens must have the `gdm.join` scope.
+        """
         r = Route('POST', '/users/@me/channels')
         payload = {
             "access_tokens": access_tokens,
@@ -110,6 +119,10 @@ class ChannelEndpoints:
         return self.request(r, payload=payload, auth=AuthType.bearer, token=token)
 
     def add_group_recipient(self, channel_id: int, user_id: int, *, access_token: str = None, nick: str = None):
+        """Add a recipient to a group channel.
+
+        Note: Access tokens must have the `gdm.join` scope.
+        """
         r = Route('PUT', '/channels/{channel_id}/recipients/{user_id}', channel_id=channel_id, user_id=user_id)
         payload = {
             "access_token": access_token,
@@ -119,6 +132,10 @@ class ChannelEndpoints:
         return self.request(r, payload=payload)
 
     def remove_group_recipient(self, channel_id: int, user_id: int):
+        """Remove a recipient from a group channel.
+
+        Note: Access tokens must have the `gdm.join` scope.
+        """
         r = Route('DELETE', '/channels/{channel_id}/recipients/{user_id}', channel_id=channel_id, user_id=user_id)
         return self.request(r)
 
@@ -129,6 +146,7 @@ class ChannelEndpoints:
         name: str = MISSING,
         icon: bytes = MISSING
     ):
+        """Edit a group DM channel."""
         r = Route('PATCH', '/channels/{channel_id}', channel_id=channel_id)
         payload = {}
 
@@ -159,6 +177,7 @@ class ChannelEndpoints:
         default_auto_archive_duration: int = MISSING,
         reason: str = None
     ):
+        """Edit a guild channel."""
         r = Route('PATCH', '/channels/{channel_id}', channel_id=channel_id)
         payload = {}
 
@@ -215,6 +234,7 @@ class ChannelEndpoints:
         rate_limit_per_user: int = MISSING,
         reason: str = MISSING
     ):
+        """Edit thread."""
         r = Route('PATCH', '/channels/{channel_id}', channel_id=channel_id)
         payload = {}
 
@@ -239,10 +259,11 @@ class ChannelEndpoints:
         return self.request(r, payload=payload, reason=reason)
 
     def delete_channel(self, channel_id: int, *, reason: str = None):
+        """Delete a channel."""
         r = Route('DELETE', '/channels/{channel_id}', channel_id=channel_id)
         return self.request(r, reason=reason)
 
-    def edit_channel_permissions(
+    def edit_channel_overwrite(
         self,
         channel_id: int,
         overwrite_id: int,
@@ -252,6 +273,7 @@ class ChannelEndpoints:
         type: int = None,
         reason: str = None
     ):
+        """Edit a guild channel's overwrite."""
         r = Route('PUT', '/channels/{channel_id}/permissions/{overwrite_id}', channel_id=channel_id, overwrite_id=overwrite_id)
         payload = {
             "allow": allow,
@@ -262,10 +284,12 @@ class ChannelEndpoints:
         return self.request(r, payload=payload, reason=reason)
 
     def delete_channel_permissions(self, channel_id: int, overwrite_id: int, *, reason: str = None):
+        """Delete a guild channel's overwrite."""
         r = Route('DELETE', '/channels/{channel_id}/permissions/{overwrite_id}', channel_id=channel_id, overwrite_id=overwrite_id)
         return self.request(r, reason=reason)
 
     def follow_news_channel(self, channel_id: int, *, webhook_channel_id: int = None):
+        """Follow a news channel to receive published messages from it."""
         r = Route('POST', '/channels/{channel_id}/', channel_id=channel_id)
         payload = {}
 
@@ -275,18 +299,25 @@ class ChannelEndpoints:
         return self.request(r, payload=payload)
 
     def start_typing(self, channel_id: int):
+        """Start a typing indicator.
+
+        Note: typing indicator lasts for 10 seconds.
+        """
         r = Route('POST', '/channels/{channel_id}/typing', channel_id=channel_id)
         return self.request(r)
 
     def get_pinned_messages(self, channel_id: int):
+        """Get a guild channel's pinned messages."""
         r = Route('GET', '/channels/{channel_id}/pins', channel_id=channel_id)
         return self.request(r)
 
     def pin_message(self, channel_id: int, message_id: int, *, reason: str = None):
+        """Pin a message."""
         r = Route('PUT', '/channels/{channel_id}/pins/{message_id}', channel_id=channel_id, message_id=message_id)
         return self.request(r, reason=reason)
 
     def unpin_message(self, channel_id: int, message_id: int, *, reason: str = None):
+        """Unpin a message."""
         r = Route('DELETE', '/channels/{channel_id}/pins/{message_id}', channel_id=channel_id, message_id=message_id)
         return self.request(r, reason=reason)
 
@@ -300,6 +331,7 @@ class ChannelEndpoints:
         rate_limit_per_user: int = None,
         reason: str = None
     ):
+        """Start a thread with a message."""
         r = Route('POST', '/channels/{channel_id}/messages/{message_id}/threads', channel_id=channel_id, message_id=message_id)
         payload = {
             "name": name
@@ -324,6 +356,7 @@ class ChannelEndpoints:
         rate_limit_per_user: int = None,
         reason: str = None
     ):
+        """Start a thread without a message."""
         r = Route('POST', '/channels/{channel_id}/threads', channel_id=channel_id)
         payload = {
             "name": name
@@ -344,34 +377,50 @@ class ChannelEndpoints:
         return self.request(r, payload=payload, reason=reason)
 
     def join_thread(self, thread_id: int):
+        """Join a thread."""
         r = Route('PUT', '/channels/{thread_id}/thread-members/@me', thread_id=thread_id)
         return self.request(r)
 
     def leave_thread(self, thread_id: int):
+        """Leave thread."""
         r = Route('DELETE', '/channels/{thread_id}/thread-members/@me', thread_id=thread_id)
         return self.request(r)
 
     def add_thread_member(self, thread_id: int, user_id: int):
+        """Add a member to a thread."""
         r = Route('PUT', '/channels/{thread_id}/thread-members/{user_id}', thread_id=thread_id, user_id=user_id)
         return self.request(r)
 
     def remove_thread_member(self, thread_id: int, user_id: int):
+        """Remove a member from a thread."""
         r = Route('DELETE', '/channels/{thread_id}/thread-members/{user_id}', thread_id=thread_id, user_id=user_id)
         return self.request(r)
 
     def get_thread_member(self, thread_id: int, user_id: int):
+        """Fetch a member of a thread."""
         r = Route('GET', '/channels/{thread_id}/thread-members/{user_id}', thread_id=thread_id, user_id=user_id)
         return self.request(r)
 
+    def list_thread_members(self, thread_id: int):
+        """Fetch a member of a thread."""
+        r = Route('GET', '/channels/{thread_id}/thread-members', thread_id=thread_id)
+        return self.request(r)
+
     def list_active_threads(self, channel_id: int):
+        """List all active/not archived threads in a channel.
+
+        Note: to be deprecated in API v10.
+        """
         r = Route('GET', '/channels/{channel_id}/threads/active', channel_id=channel_id)
         return self.request(r)
 
     def list_active_guild_threads(self, guild_id: int):
+        """List all active/not archived threads in a guild."""
         r = Route("GET", "/guilds/{guild_id}/threads/active", guild_id=guild_id)
         return self.request(r)
 
     def get_public_archived_threads(self, channel_id: int, *, limit: int = None, before: int = None):
+        """List all public archived threads of a channel."""
         r = Route('GET', '/channels/{channel_id}/threads/archived/public', channel_id=channel_id)
         params = {}
 
@@ -384,6 +433,7 @@ class ChannelEndpoints:
         return self.request(r, params=params)
 
     def get_private_archived_threads(self, channel_id: int, *, limit: int = None, before: int = None):
+        """List all private archived threads of a channel."""
         r = Route('GET', '/channels/{channel_id}/threads/archived/private', channel_id=channel_id)
         params = {}
 
@@ -396,6 +446,7 @@ class ChannelEndpoints:
         return self.request(r, params=params)
 
     def get_joined_private_archived_threads(self, channel_id: int, *, limit: int = None, before: int = None):
+        """List all private, joined, and archived threads of a channel."""
         r = Route('GET', '/channels/{channel_id}/users/@me/threads/archived/private', channel_id=channel_id)
         params = {}
 

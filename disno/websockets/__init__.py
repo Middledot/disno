@@ -31,7 +31,7 @@ import aiohttp
 from .utils import to_json, from_json
 
 
-class OPType:
+class ClientOPType:
     dispatch = 0
     heartbeat = 1
     identify = 2
@@ -63,8 +63,8 @@ class Heartbeat(threading.Thread):
     
     def get_payload(self):
         return {
-            "op": OPType.heartbeat,
-            "d": self.ws.sequence
+            "op": ClientOPType.heartbeat,
+            "d": self.ws.sequence,
         }
 
     def stop(self):
@@ -72,10 +72,10 @@ class Heartbeat(threading.Thread):
 
 
 class BaseWebsocket:
-    def __init__(self, bot_token: str, *, session: aiohttp.ClientSession = None, loop = None):
+    def __init__(self, token: str, *, session: aiohttp.ClientSession = None, loop = None):
         user_agent = 'DiscordBot (https://github.com/QwireDev/disno {0}) Python/{1[0]}.{1[1]} aiohttp/{2}'
         self.user_agent = user_agent.format("1.0.0a.1", sys.version_info, aiohttp.__version__)
-        self.token = bot_token
+        self.token = token
 
         if loop is None:
             try:
@@ -112,14 +112,87 @@ class BaseWebsocket:
         await self.send_json(self.heartbeat.get_payload())
         self.heartbeat.start()
 
+    async def connect(self):
+        kwargs = {
+            'max_msg_size': 0,
+            'timeout': 30.0,
+            'autoclose': False,
+            'headers': {
+                'User-Agent': self.user_agent,
+            }
+        }
+
+        return await self.session.ws_connect(self.gateway, **kwargs)
+
+    async def process_receive(self, msg):
+        try:
+            data = from_json(msg)
+        except:
+            print(type(msg))
+            print(msg)
+        if data["s"] is not None:
+            self.sequence = data["s"]
+        op = data["op"]
+        event = data["t"]
+        print("[RECEIVED] ", data)
+        if op == ClientOPType.hello:
+            await self.ack_hello(data)
+        elif op == ClientOPType.heartbeat:
+            await self.send_json(self.heartbeat.get_payload())
+        elif op == ClientOPType.dispatch and event == 'READY':
+            payload = data.get('d')
+            self.session_id = payload.get('session_id')
+
+        return op, event
+
+    async def poll_receive(self):
+        msg = await self.socket.receive(timeout=120)
+        if type(msg.data) is bytes:
+            self._buffer.extend(msg.data)
+
+            # check if the last four bytes are equal to ZLIB_SUFFIX
+            if len(msg.data) < 4 or msg.data[-4:] != b'\x00\x00\xff\xff':
+                return
+
+            # if the message *does* end with ZLIB_SUFFIX,
+            # get the full message by decompressing the buffers
+            # NOTE: the message is utf-8 encoded.
+            msg = self._inflator.decompress(self._buffer)
+            self._buffer = bytearray()
+        await self.process_receive(msg)
+
+    async def identify_payload(self):
+        raise NotImplementedError()
+
+    async def resume_payload(self):
+        raise NotImplementedError()
+
+
+class Websocket(BaseWebsocket):
+    def __init__(self, token: str, processor, *, session: aiohttp.ClientSession = None, loop = None):
+        super().__init__(token, session=session, loop=loop)
+        self.processor = processor
+
+    @classmethod
+    async def initialize(cls, *args, **kwargs):
+        ws = cls(*args, **kwargs)
+
+        ws.gateway = "wss://gateway.discord.gg?encoding='json'&v=9&compress=zlib-stream" # TODO: uhh
+        ws.socket = await ws.connect()
+
+        await ws.poll_receive()
+        await ws.identify_payload()
+
+        return ws
+
     async def identify_payload(self):
         package = {
-            "op": OPType.identify,
+            "op": ClientOPType.identify,
             "d": {
                 "token": self.token,
-                "intents": 14079,
+                "intents": 13955,  # ik
                 "properties": {
-                    "$os": "windows",
+                    "$os": sys.platform,
                     "$browser": "disno",
                     "$device": "disno"
                 },
@@ -146,72 +219,6 @@ class BaseWebsocket:
 
         await self.send_json(resume_payload)
 
-    async def connect(self):
-        kwargs = {
-            'max_msg_size': 0,
-            'timeout': 30.0,
-            'autoclose': False,
-            'headers': {
-                'User-Agent': self.user_agent,
-            }
-        }
-
-        return await self.session.ws_connect(self.gateway, **kwargs)
-
-    async def process_receive(self, msg):
-        try:
-            data = from_json(msg)
-        except:
-            print(type(msg))
-            print(msg)
-        if data["s"] is not None:
-            self.sequence = data["s"]
-        op = data["op"]
-        event = data["t"]
-        print("[RECEIVED] ", data)
-        if op == OPType.hello:
-            await self.ack_hello(data)
-        elif op == OPType.heartbeat:
-            await self.send_json(self.heartbeat.get_payload())
-        elif op == OPType.dispatch and event == 'READY':
-            payload = data.get('d')
-            self.session_id = payload.get('session_id')
-
-        return op, event
-
-    async def poll_receive(self):
-        msg = await self.socket.receive(timeout=120)
-        if type(msg.data) is bytes:
-            self._buffer.extend(msg.data)
-
-            # check if the last four bytes are equal to ZLIB_SUFFIX
-            if len(msg.data) < 4 or msg.data[-4:] != b'\x00\x00\xff\xff':
-                return
-
-            # if the message *does* end with ZLIB_SUFFIX,
-            # get the full message by decompressing the buffers
-            # NOTE: the message is utf-8 encoded.
-            msg = self._inflator.decompress(self._buffer)
-            self._buffer = bytearray()
-        await self.process_receive(msg)
-
-
-class Websocket:
-    def __init__(self, bot_token: str, *, session: aiohttp.ClientSession = None, loop = None):
-        super().__init__(bot_token, session=session, loop=loop)
-
-    @classmethod
-    async def initialize(cls, *args, **kwargs):
-        ws = cls(*args, **kwargs)
-
-        ws.gateway = "wss://gateway.discord.gg?encoding='json'&v=9&compress=zlib-stream" # TODO: uhh
-        ws.socket = await ws.connect()
-
-        await ws.poll_receive()
-        await ws.identify_payload()
-
-        return ws
-
     async def process_receive(self, msg):
         try:
             data = from_json(msg)
@@ -225,15 +232,19 @@ class Websocket:
         op = data["op"]
         event = data["t"]
         print("[RECEIVED] ", data)
-        if op == OPType.hello:
+        if op == ClientOPType.hello:
             await self.ack_hello(data)
-        elif op == OPType.heartbeat:
+        elif op == ClientOPType.heartbeat:
             await self.send_json(self.heartbeat.get_payload())
-        elif op == OPType.dispatch and event == 'READY':
+        elif op == ClientOPType.dispatch and event == 'READY':
             payload = data.get('d')
             self.session_id = payload.get('session_id')
 
-        if op == OPType.reconnect:
+        if op == ClientOPType.dispatch:
+            if self.processor:
+                await self.processor(event, data.get('d'))
+
+        if op == ClientOPType.reconnect:
             # TODO: Test if this works, I haven't gotten a reconnect yet
             self.heart.stop()
             await self.socket.close()
